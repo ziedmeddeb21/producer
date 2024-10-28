@@ -1,4 +1,4 @@
-package org.acme;
+package com.producer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -20,10 +20,10 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 @RolesAllowed("user")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-public class MovieResource {
+public class ProducerResource {
 
     @Inject
-    MovieProducer producer;
+    ProducerService producer;
 
     @POST
     @Operation(summary = "Send a json to Kafka")
@@ -107,7 +107,7 @@ public class MovieResource {
     @APIResponse(responseCode = "403", description = "Forbidden access")
     @APIResponse(responseCode = "500", description = "Internal server error")
     public Response send(JsonNode payload) throws JsonProcessingException {
-        producer.sendMovieToKafka(payload);
+        producer.sendJsonToKafka(payload);
 
         // Return a 202 - Accepted response.
         return Response.accepted(

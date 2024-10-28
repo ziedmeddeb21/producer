@@ -1,4 +1,4 @@
-package org.acme;
+package com.producer;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -12,16 +12,16 @@ import org.jboss.logging.Logger;
 
 
 @ApplicationScoped
-public class MovieProducer {
+public class ProducerService {
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final Logger logger = Logger.getLogger(MovieProducer.class);
+    private final Logger logger = Logger.getLogger(ProducerService.class);
     @Inject
-    @Channel("movies-out")
+    @Channel("json-out")
     Emitter<String> emitter;
 
-    public void sendMovieToKafka(JsonNode movie) throws JsonProcessingException {
-        String movieJson = objectMapper.writeValueAsString(movie);
-        logger.infof("Json movie: %s", movieJson);
-        emitter.send(movieJson);
+    public void sendJsonToKafka(JsonNode payload) throws JsonProcessingException {
+        String payloadJson = objectMapper.writeValueAsString(payload);
+        logger.infof("Json payload: %s", payloadJson);
+        emitter.send(payloadJson);
     }
 }
