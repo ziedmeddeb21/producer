@@ -107,16 +107,19 @@ public class ProducerResource {
     @APIResponse(responseCode = "403", description = "Forbidden access")
     @APIResponse(responseCode = "500", description = "Internal server error")
     public Response send(JsonNode payload) throws JsonProcessingException {
-        producer.sendJsonToKafka(payload);
-
-        // Return a 202 - Accepted response.
-        return Response.accepted(
-                """
-           {
-              "status": "success",
-              "message": "Data sent to Kafka topic successfully"
-           }
-           """
-        ).build();
+        try{
+            producer.sendJsonToKafka(payload);
+            // Return a 202 - Accepted response.
+            return Response.accepted(
+                    """
+               {
+                  "status": "success",
+                  "message": "Data sent to Kafka topic successfully"
+               }
+               """
+            ).build();
+        } catch (JsonProcessingException e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Not able to deserialize data provided.").build();
+        }
     }
 }

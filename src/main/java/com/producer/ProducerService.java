@@ -11,6 +11,7 @@ import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.jboss.logging.Logger;
 
 
+
 @ApplicationScoped
 public class ProducerService {
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -19,9 +20,10 @@ public class ProducerService {
     @Channel("json-out")
     Emitter<String> emitter;
 
-    public void sendJsonToKafka(JsonNode payload) throws JsonProcessingException {
+    public boolean sendJsonToKafka(JsonNode payload) throws JsonProcessingException {
         String payloadJson = objectMapper.writeValueAsString(payload);
         logger.infof("Json payload: %s", payloadJson);
         emitter.send(payloadJson);
+        return true;
     }
 }
