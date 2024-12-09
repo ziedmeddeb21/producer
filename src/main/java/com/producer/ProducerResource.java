@@ -4,10 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -15,6 +12,8 @@ import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.ExampleObject;
 import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+
+import java.util.concurrent.ExecutionException;
 
 @Path("/send-json")
 @RolesAllowed("user")
@@ -26,6 +25,7 @@ public class ProducerResource {
     ProducerService producer;
 
     @POST
+    @Path("/{collectionName}")
     @Operation(summary = "Send a json to Kafka")
     @RequestBody(
             description = "JSON payload to send to Kafka",
@@ -106,20 +106,15 @@ public class ProducerResource {
     @APIResponse(responseCode = "401", description = "Unauthorized access")
     @APIResponse(responseCode = "403", description = "Forbidden access")
     @APIResponse(responseCode = "500", description = "Internal server error")
-    public Response send(JsonNode payload) throws JsonProcessingException {
-        try{
-            producer.sendJsonToKafka(payload);
-            // Return a 202 - Accepted response.
-            return Response.accepted(
-                    """
-               {
-                  "status": "success",
-                  "message": "Data sent to Kafka topic successfully"
-               }
-               """
-            ).build();
-        } catch (JsonProcessingException e) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Not able to deserialize data provided.").build();
+
+
+    public Response send(JsonNode payload, @PathParam("collectionName") String collectionName) {
+        try {
+            producer.sendJsonToKafka(payload, collectionName);
+            Object result = producer.getTransformedPayload();
+            return Response.status(Response.Status.ACCEPTED).entity(result).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
     }
 }
